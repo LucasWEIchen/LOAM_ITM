@@ -1,5 +1,32 @@
+//This code is created based on A-LOAM by Weichen WEI: weichen.wei@monash.edu
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+// 3. Neither the name of the copyright holder nor the names of its
+//    contributors may be used to endorse or promote products derived from this
+//    software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+
 #include <iostream>
-// #include <fstream>
+
 #include <ros/ros.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/transform_datatypes.h>
@@ -21,15 +48,10 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <ceres/ceres.h>
-// #include <pcl/io/pcd_io.h>
-// #include <pcl/registration/icp.h>
-// #include <pcl/features/moment_of_inertia_estimation.h>
-// #include <opencv2/features2d/features2d.hpp>
-// #include <opencv2/highgui/highgui.hpp>
-// #include <opencv2/calib3d/calib3d.hpp>
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-// #include <Eigen/SVD>
+
 #include <chrono>
 #include "loam_itm/rotation.h"
 
@@ -112,15 +134,15 @@ public:
   {
     if (first_call_escaper < 2)
     {
-      ROS_INFO("Skip 5 sec %d", first_call_escaper); // with /clock some reason ROS will call timer event twice when init.
+      ROS_INFO("Skip 5 sec %d", first_call_escaper); 
       first_call_escaper++;
       ROS_INFO("pre-sampleling in %d rounds, every round with %d points, Iter every %d Seconds. ITM tigger if gap bigger than %f meters.", p_sampling_round, p_sampling_num, p_iter_cycle, p_gap_limit);
     }
     else
     {
-      // float factor;
+      
       int dim = 3;
-      // int num = 100;
+      
       int i = 0;
       int j = 0;
       double *M = (double *)calloc(3 * hactor_count, sizeof(double));
@@ -136,7 +158,7 @@ public:
       if (laser_count >= path_flag * p_sampling_num && path_flag <= p_sampling_round)
       {
         double residual = pclAssembler(cloud_Hector, cloud_Tracker, i, j, M, T, R, t, dim, mass_center, ceres_rot);
-        // if success and residual is bigger than something!? lucas
+        
         min_residual = residual;
         ROS_INFO("###################### Alineing Reference Frame ###################### \n");
         path_rotation = R;
@@ -151,27 +173,27 @@ public:
         {
           ROS_INFO("\n######Residual not valid, ICP has not converged.###### %f", residual);
         }
-        // if(path_flag == p_sampling_round){//last prepare cycle && first piblish
-        //     ITMpub(laser_stamp_min, laser_stamp_max, R, t);
-        // }
+        
+        
+        
         path_flag++;
       }
       else if (laser_count >= path_flag * p_sampling_num && path_flag > p_sampling_round)
       {
         double residual = pclAssembler(cloud_Hector, cloud_Tracker, i, j, M, T, R, t, dim, mass_center, ceres_rot);
-        // if success and residual is bigger than something!? lucas
+        
         rotatePoint(M, i, R, t, dim, ceres_rot);
         ITMEncoder(cloud_ICP, M, i, dim);
         if (residual < p_residual_limit)
         {
           ROS_INFO("###################### Sending Rotation Matrix ###################### \n");
           ROS_INFO("Residual is: %f", residual);
-          // pcl::MomentOfInertiaEstimation <pcl::PointXYZ> feature_extractor;
-          // feature_extractor.setInputCloud (cloud_Tracker);
-          // feature_extractor.compute ();
+          
+          
+          
           ROS_INFO("Rotation Mass Center: X %f, Y %f, Z %f", mass_center.x(), mass_center.y(), mass_center.z());
-          // icp_path_pub.publish(cloud_ICP);
-          // ROS_INFO("Rotation is %f", (atan2(R.val[1][0] , R.val[0][0])));
+          
+          
           if ((abs(t.x()) + abs(t.y()) + abs(t.z())) > p_gap_limit)
           {
             icp_path_pub.publish(cloud_ICP);
@@ -194,8 +216,8 @@ public:
       {
         ROS_INFO("waiting for more Reference points");
       }
-      free(M); // free memory
-      free(T); // free memory
+      free(M); 
+      free(T); 
     }
   }
 
@@ -204,7 +226,7 @@ public:
     pointCloudResize(cloud_Hector);
     pointCloudResize(cloud_Tracker);
     round_hector_points = hactor_count - hactor_offset;
-    round_tracker_points = laser_count - laser_offset; //downsamping to match number of points
+    round_tracker_points = laser_count - laser_offset; 
 
     i = hectorEncoder(cloud_Hector, M, i, dim, mass_center);
     j = kittiEncoder(cloud_Tracker, T, j, dim);
@@ -215,7 +237,7 @@ public:
     double residual = 0.0;
     if (path_flag <= p_sampling_round)
     {
-      //aligning
+      
     }
     else
     {
@@ -236,7 +258,7 @@ public:
 
   int hectorEncoder(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_Hector, double *&M, int i, int dim, Eigen::Vector3d &mass_center)
   {
-    // float factor = round_hector_points / round_tracker_points;
+    
     float m_c_x = 0.0;
     float m_c_y = 0.0;
     float m_c_z = 0.0;
@@ -251,11 +273,9 @@ public:
       cloud_Hector->points[i].x = Hactor_Path.poses[hactor_offset].pose.position.x;
       cloud_Hector->points[i].y = Hactor_Path.poses[hactor_offset].pose.position.y;
       cloud_Hector->points[i].z = Hactor_Path.poses[hactor_offset].pose.position.z;
-      // if (factor>1){
-      //   hactor_offset = ceil(factor + hactor_offset);
-      // }else{
+ 
       hactor_offset++;
-      // }
+      
       m_c_x += M[i * dim + 0];
       m_c_y += M[i * dim + 1];
       m_c_z += M[i * dim + 2];
@@ -283,12 +303,10 @@ public:
       cloud_Tracker->points[j].x = Laser_Path.poses[laser_offset].pose.position.x;
       cloud_Tracker->points[j].y = Laser_Path.poses[laser_offset].pose.position.y;
       cloud_Tracker->points[j].z = Laser_Path.poses[laser_offset].pose.position.z;
-      // if (factor>1){
-      //   laser_offset = ceil(factor + laser_offset);
-      // }else{
-      cont += factor; //stright forward downsampling
+
+      cont += factor; 
       laser_offset = ceil(cont);
-      // }
+      
       j++;
     }
 
@@ -303,7 +321,7 @@ public:
     cloud_ICP->header.frame_id = "camera_init";
     for (int c = 0; c < i; ++c)
     {
-      // ROS_INFO("Writing %d",c);
+      
       cloud_ICP->points[c].x = M[dim * c + 0];
       cloud_ICP->points[c].y = M[dim * c + 1];
       cloud_ICP->points[c].z = M[dim * c + 2];
@@ -327,42 +345,21 @@ public:
     geometry_msgs::Transform new_frame_trans;
     new_frame_trans.translation = ICP_trans;
     new_frame_trans.rotation = ICP_rot;
-    // t.getData(val_tm);
-    // // Matrix Rr = Matrix::inv(R);
-    // Rr.getData(val_Rm);
-    // hector_icp::PLICP_Trans new_frame_trans;
-    // new_frame_trans.header.stamp = ros::Time::now();
+    
     ICP_message.header.frame_id = "camera_init";
-    // ICP_message.child_frame_id = "aft_mapped";
     ICP_message.transform = new_frame_trans;
-    // new_frame_trans.transform.data.resize(5);
-    // new_frame_trans.transform.data[0]= val_tm[0];
-    // new_frame_trans.transform.data[1]= val_tm[1];
-    // new_frame_trans.transform.data[2]= val_tm[2];
-    // new_frame_trans.transform.data[3]= mass_center.x();
-    // new_frame_trans.transform.data[4]= mass_center.y();
-    // new_frame_trans.rotation.data.resize(dim*dim);
-    // for (int i = 0; i < dim*dim; i++ ){
-    //   new_frame_trans.rotation.data[i]= val_Rm[i];
-    // }
-    // new_frame_trans.begin_stamp = laser_stamp_min;
-    // new_frame_trans.end_stamp = laser_stamp_max;
-    PCL_Trans_pub.publish(ICP_message); //msg TF transform
+    
+    PCL_Trans_pub.publish(ICP_message); 
     ROS_INFO("Current Trans Time: %f to %f\n", laser_stamp_min.toSec(), laser_stamp_max.toSec());
   }
 
   void rotatePoint(double *&points_in, int &points_num, Eigen::Quaterniond Rq, Eigen::Vector3d t, int dim, double *ceres_rot)
   {
     for (int i = 0; i < points_num; ++i)
-    {
-      // Eigen::Vector3d point_curr(points_in[dim * i + 0], points_in[dim * i + 1], points_in[dim * i + 2]);
-      // cout<<"Rceres = "<<ceres_rot[0]<< ", "<<ceres_rot[1]<< ", "<<ceres_rot[2]<<endl;
+    { 
       double pointout[3] = {points_in[dim * i + 0], points_in[dim * i + 1], points_in[dim * i + 2]};
       AngleAxisRotatePoint(ceres_rot, pointout, pointout);
-      // Eigen::Vector3d pointout = Rq * point_curr + t;
-      // points_in[dim * i + 0] = pointout.x();
-      // points_in[dim * i + 1] = pointout.y();
-      // points_in[dim * i + 2] = pointout.z();
+      
       points_in[dim * i + 0] = pointout[0] + ceres_rot[3];
       points_in[dim * i + 1] = pointout[1] + ceres_rot[4];
       points_in[dim * i + 2] = pointout[2] + ceres_rot[5];
@@ -373,22 +370,22 @@ public:
   {
     Hactor_Path = msg;
     hactor_count = Hactor_Path.poses.size();
-    // ROS_INFO("Saved [%d] Hactor points", hactor_count);
+    
   }
 
   void kitti_path_Callback(const nav_msgs::Path &msg)
   {
     Laser_Path = msg;
     laser_count = Laser_Path.poses.size();
-    // ROS_INFO("Saved [%d] Hactor points", hactor_count);
+    
   }
 
   double ceres_ICP(int &i, int &j, double *&M, double *&T, Eigen::Quaterniond &R, Eigen::Vector3d &t, int dim, double residual, double *ceres_rot3, Eigen::Vector3d &mass_center)
   {
     double cere_r_t[6] = {0.0, 0, 0, 0, 0, 0};
-    // Eigen::Quaterniond q_ITM_curr(0.7071068, 0, 0, 0.7071068);
+    
 
-    // QuaternionToAngleAxis(q_ITM_curr, cere_rot);
+    
 
     vector<Eigen::Vector3d> pts1, pts2;
 
@@ -412,28 +409,19 @@ public:
 
     for (int conti = 0; conti < pts2.size(); conti++)
     {
-      ceres::CostFunction *costfunction = new ceres::AutoDiffCostFunction<cost_function_define, 3, 6>(new cost_function_define(pts1[conti], pts2[conti])); //残差项数量, 优化参数1数量，优化参数2数量
-      problem.AddResidualBlock(costfunction, NULL, cere_r_t);                                                                                              //注意，cere_rot不能为Mat类型
+      ceres::CostFunction *costfunction = new ceres::AutoDiffCostFunction<cost_function_define, 3, 6>(new cost_function_define(pts1[conti], pts2[conti])); 
+      problem.AddResidualBlock(costfunction, NULL, cere_r_t);                                                                                              
     }
 
     ceres::Solver::Options option;
     option.linear_solver_type = ceres::DENSE_QR;
-    //输出迭代信息到屏幕
-    // option.line_search_direction_type = ceres::LBFGS;
-    // option.max_lbfgs_rank = 25;
-    // option.line_search_interpolation_type = ceres::CUBIC;
-    // option.min_line_search_step_contraction = 0.1;
-    // option.minimizer_progress_to_stdout = true;
-    // option.min_relative_decrease = 1e-5;
+  
     option.max_num_iterations =100;
-    //显示优化信息
+    
     ceres::Solver::Summary summary;
-    //开始求解
+    
     ceres::Solve(option, &problem, &summary);
-    //显示优化信息
-    // cout << summary.FullReport() << endl;
-
-    // verify p1 = R*p2 + t
+    
     ceres_rot3[0] = cere_r_t[0];
     ceres_rot3[1] = cere_r_t[1];
     ceres_rot3[2] = cere_r_t[2];
@@ -462,7 +450,7 @@ public:
     }
   }
 
-  // private:
+  
   ros::NodeHandle n_;
   ros::Subscriber sub_, sub_kitti;
   ros::Subscriber tracker_sub;
@@ -477,7 +465,7 @@ public:
   ros::Publisher gps_pub;
   nav_msgs::Path Hactor_Path;
   nav_msgs::Path Laser_Path;
-  // geometry_msgs::PoseStamped Current_Pose;
+  
   tf2_ros::TransformBroadcaster pcl_br;
   int reference_location_init;
   float reference_location_init_x;
@@ -508,7 +496,7 @@ public:
   int p_residual_limit;
   float round_hector_points;
   float round_tracker_points;
-  float val_tm[3 * 3]; //two matrix for sending transform msg
+  float val_tm[3 * 3]; 
   float val_Rm[3 * 3];
 };
 
