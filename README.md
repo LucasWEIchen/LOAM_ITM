@@ -21,4 +21,4 @@ GIF 3:
 LOAM_ITM requires ROS, PCL and Ceres installed. The instaliation procedure is same as listed on [A-LOAM](https://github.com/HKUST-Aerial-Robotics/A-LOAM)
 
 ## Test
-The current launch file works with topics in KITTI dataset. It uses GPS in KITTI as the reference frame. However, the package can also work with any bag file which output a Lidar topic and a reference odometry topic.
+The current launch file works with topics in KITTI dataset in ROS bag format. It uses GPS in KITTI as the reference frame. There are many tools online can convert KITTI into ROS bag format, such as [KITTI helper](https://github.com/HKUST-Aerial-Robotics/A-LOAM#4-kitti-example-velodyne-hdl-64). However, the package can also work with any bag file which output a Lidar topic and a reference odometry topic with some change in topic subscribtions.
