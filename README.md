@@ -1,5 +1,5 @@
 # LOAM_ITM
-LOAM with posture recovery using GPS trajectory
+LOAM with posture recovery using reference trajectory
 
 ## A modified implementation of A-LOAM
 
