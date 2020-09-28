@@ -8,8 +8,8 @@ The modification is based on [A-LOAM](https://github.com/HKUST-Aerial-Robotics/A
 
 **Modifier:** [Weichen WEI](weichen.wei@monash.edu)
 
-<img src="https://github.com/LucasWEIchen/LOAM_ITM/blob/master/picture/loam02a.png" width = 100% height = 100%/>
-<img src="https://github.com/LucasWEIchen/LOAM_ITM/blob/master/picture/loam02b.png" width = 100% height = 100%/>
+<img src="https://github.com/LucasWEIchen/LOAM_ITM/blob/master/picture/itm_1.gif" width = 100% height = 100%/>
+<img src="https://github.com/LucasWEIchen/LOAM_ITM/blob/master/picture/itm_2.gif" width = 100% height = 100%/>
 
 ## Install
 LOAM_ITM requires ROS, PCL and Ceres installed. The instaliation procedure is same as listed on [A-LOAM](https://github.com/HKUST-Aerial-Robotics/A-LOAM)
