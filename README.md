@@ -8,7 +8,7 @@ The modification is based on [A-LOAM](https://github.com/HKUST-Aerial-Robotics/A
 
 **Modifier:** [Weichen WEI](weichen.wei@monash.edu)
 ## Demo
-A demostration of the ITM alogorithm is on [youtube](https://www.youtube.com/watch?v=5VTVHD8ykcA).
+A demostration of the ITM alogorithm is avaliable on [youtube](https://www.youtube.com/watch?v=5VTVHD8ykcA).
 
 GIF 1:
 <img src="https://github.com/LucasWEIchen/LOAM_ITM/blob/master/picture/itm_1.gif" width = 100% height = 100%/>
